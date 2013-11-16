@@ -103,6 +103,41 @@ class TransitionFadeBlocks: public Transition {
 		TransitionFadeBlocks(TransitionFadeBlocks&);
 };
 
+class TransitionBlackout: public Transition {
+	public:
+		TransitionBlackout(double duration): duration(duration), complete(false){
+
+		}
+
+		virtual bool isComplete() const {
+			return complete;
+		}
+
+
+		virtual void render(const Texture *from, const Texture *to, RenderTarget *destination, double elapsed){
+			double e = elapsed / duration;
+
+			destination->clear(Color::Black);
+
+			if(e < 0.5){
+				Sprite fromSprite(*from);
+				fromSprite.setColor(Color(255, 255, 255, 500*(0.5-e)));
+				destination->draw(fromSprite);
+			}else{
+				Sprite toSprite(*to);
+				toSprite.setColor(Color(255, 255, 255, 500*(e - 0.5)));
+				destination->draw(toSprite);
+			}
+		}
+
+
+	private:
+		double duration;
+		bool complete;
+
+		TransitionBlackout(TransitionBlackout&);
+};
+
 int main(int argc, char **argv) {
 	RenderWindow window(VideoMode(1280, 720), "Transition", Style::Close);
 	window.setVerticalSyncEnabled(true);
@@ -123,7 +158,7 @@ int main(int argc, char **argv) {
 	RectangleShape green(Vector2f(1280, 720));
 	green.setFillColor(Color::Green);
 
-	TransitionFadeBlocks fade(1, 40, 1);
+	TransitionBlackout fade(0.5);
 
 	bool running = true;
 	bool hasSwapped = false;
@@ -148,7 +183,7 @@ int main(int argc, char **argv) {
 				hasSwapped = true;
 			}
 
-			if(transitionTimer.getElapsedTime() < seconds(1)){
+			if(transitionTimer.getElapsedTime() < seconds(0.5)){
 				source.clear();
 				destination.clear();
 				source.draw(blue);
